@@ -35,7 +35,7 @@ class FullPlayer extends StatelessWidget {
                     iconSize: 32,
                     onPressed: onCollapse,
                   ),
-                  const Text(
+                  Text(
                     'Reproduciendo',
                     style: TextStyle(
                       color: AppTheme.textSecondary,
@@ -78,7 +78,7 @@ class FullPlayer extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       current!.artist!,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppTheme.textSecondary,
                         fontSize: 16,
                       ),

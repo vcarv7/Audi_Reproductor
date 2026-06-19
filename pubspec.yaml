@@ -1,4 +1,4 @@
-name: audi_reproductor
+name: eco_player
 description: "Reproductor de audio personalizado en Flutter"
 publish_to: 'none'
 version: 1.0.0+1
@@ -15,11 +15,41 @@ dependencies:
   path_provider: ^2.1.0
   provider: ^6.1.0
   path: ^1.9.0
+  on_audio_query: ^2.9.0
+  shared_preferences: ^2.3.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.1
 
 flutter:
   uses-material-design: true
+  assets:
+    - lib/assets/icons/screen.png
+  fonts:
+    - family: Audiowide
+      fonts:
+        - asset: lib/assets/fonts/Audiowide-Regular.ttf
+    - family: BebasNeue
+      fonts:
+        - asset: lib/assets/fonts/BebasNeue-Regular.ttf
+    - family: Monoton
+      fonts:
+        - asset: lib/assets/fonts/Monoton-Regular.ttf
+    - family: Orbitron
+      fonts:
+        - asset: lib/assets/fonts/Orbitron-Bold.ttf
+          weight: 700
+    - family: Poppins
+      fonts:
+        - asset: lib/assets/fonts/Poppins-Bold.ttf
+          weight: 700
+
+flutter_launcher_icons:
+  android: true
+  image_path: "lib/assets/icons/screen.png"
+  adaptive_icon_background: "#0A0A0A"
+  adaptive_icon_foreground: "lib/assets/icons/screen.png"
+  min_sdk_android: 21

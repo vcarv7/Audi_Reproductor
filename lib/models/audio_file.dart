@@ -3,6 +3,8 @@ class AudioFile {
   final String path;
   final String name;
   final String? artist;
+  final String? album;
+  final int? genreId;
   final Duration? duration;
 
   AudioFile({
@@ -10,6 +12,8 @@ class AudioFile {
     required this.path,
     required this.name,
     this.artist,
+    this.album,
+    this.genreId,
     this.duration,
   });
 
@@ -27,6 +31,8 @@ class AudioFile {
     String? path,
     String? name,
     String? artist,
+    String? album,
+    int? genreId,
     Duration? duration,
   }) {
     return AudioFile(
@@ -34,6 +40,8 @@ class AudioFile {
       path: path ?? this.path,
       name: name ?? this.name,
       artist: artist ?? this.artist,
+      album: album ?? this.album,
+      genreId: genreId ?? this.genreId,
       duration: duration ?? this.duration,
     );
   }

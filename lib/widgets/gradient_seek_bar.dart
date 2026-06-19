@@ -97,14 +97,14 @@ class _GradientSeekBarState extends State<GradientSeekBar> {
             children: [
               Text(
                 _formatDuration(widget.position),
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppTheme.textSecondary,
                   fontSize: 12,
                 ),
               ),
               Text(
                 _formatDuration(widget.duration),
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppTheme.textMuted,
                   fontSize: 12,
                 ),

@@ -1,25 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/audio_player_provider.dart';
+import 'providers/font_provider.dart';
 import 'screens/home_screen.dart';
 import 'theme/app_theme.dart';
 
 void main() {
-  runApp(const AudiReproductorApp());
+  runApp(const EcoApp());
 }
 
-class AudiReproductorApp extends StatelessWidget {
-  const AudiReproductorApp({super.key});
+class EcoApp extends StatelessWidget {
+  const EcoApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => AudioPlayerProvider(),
-      child: MaterialApp(
-        title: 'Audi Player',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.theme,
-        home: const HomeScreen(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AudioPlayerProvider()),
+        ChangeNotifierProvider(create: (_) => FontProvider()),
+      ],
+      child: Consumer<FontProvider>(
+        builder: (context, fontProvider, _) => MaterialApp(
+          title: 'EcoPlayer',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.themeWithFont(fontProvider.fontFamily),
+          home: const HomeScreen(),
+        ),
       ),
     );
   }

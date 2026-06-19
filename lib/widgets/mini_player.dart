@@ -77,7 +77,7 @@ class MiniPlayer extends StatelessWidget {
                         if (current.artist != null)
                           Text(
                             current.artist!,
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: AppTheme.textSecondary,
                               fontSize: 12,
                             ),

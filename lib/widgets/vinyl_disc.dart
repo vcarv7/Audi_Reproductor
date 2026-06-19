@@ -86,7 +86,7 @@ class _VinylDiscState extends State<VinylDisc>
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: const RadialGradient(
-                colors: [AppTheme.primary, AppTheme.primaryDark],
+                colors: [AppTheme.primary, Color(0xFF1A1A1A)],
               ),
               boxShadow: [
                 BoxShadow(

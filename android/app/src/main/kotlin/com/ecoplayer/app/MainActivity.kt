@@ -1,4 +1,4 @@
-package com.audioreproductor.audi_reproductor
+package com.ecoplayer.app
 
 import io.flutter.embedding.android.FlutterActivity
 
