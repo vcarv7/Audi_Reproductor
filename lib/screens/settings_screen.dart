@@ -338,14 +338,12 @@ class _SettingsTile extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
-  final VoidCallback? onTap;
   final bool enabled;
 
   const _SettingsTile({
     required this.icon,
     required this.title,
     required this.subtitle,
-    this.onTap,
     this.enabled = true,
   });
 
@@ -364,7 +362,7 @@ class _SettingsTile extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: enabled ? onTap : null,
+          onTap: null,
           borderRadius: BorderRadius.circular(12),
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -416,7 +414,7 @@ class _SettingsTile extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (enabled && onTap != null)
+                if (enabled)
                   Icon(
                     Icons.chevron_right_rounded,
                     color: AppTheme.textMuted,

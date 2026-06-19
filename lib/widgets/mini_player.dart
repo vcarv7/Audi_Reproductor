@@ -92,7 +92,7 @@ class MiniPlayer extends StatelessWidget {
                       provider.isPlaying
                           ? Icons.pause_circle_filled
                           : Icons.play_circle_filled,
-                      color: AppTheme.primary,
+                      color: Colors.white,
                       size: 42,
                     ),
                     onPressed: () => provider.togglePlayPause(),

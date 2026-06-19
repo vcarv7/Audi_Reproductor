@@ -29,6 +29,9 @@ class AudioPlayerProvider extends ChangeNotifier {
   int _lastScanCount = 0;
   bool _scanResultShown = false;
   String? _lastError;
+  double _playbackSpeed = 1.0;
+  Timer? _sleepTimer;
+  Duration? _sleepTimerDuration;
 
   List<Album> _albums = [];
   List<Artist> _artists = [];
@@ -63,6 +66,8 @@ class AudioPlayerProvider extends ChangeNotifier {
   int get lastScanCount => _lastScanCount;
   bool get scanResultShown => _scanResultShown;
   String? get lastError => _lastError;
+  double get playbackSpeed => _playbackSpeed;
+  Duration? get sleepTimerDuration => _sleepTimerDuration;
 
   Future<Uint8List?> getArtwork(int id, {int size = 300}) async {
     if (_artworkCache.containsKey(id)) {
@@ -574,6 +579,50 @@ class AudioPlayerProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setPlaybackSpeed(double speed) async {
+    _playbackSpeed = speed;
+    await _player.setPlaybackRate(speed);
+    notifyListeners();
+  }
+
+  void setSleepTimer(Duration? duration) {
+    _sleepTimer?.cancel();
+    _sleepTimer = null;
+    _sleepTimerDuration = duration;
+    if (duration != null) {
+      _sleepTimer = Timer(duration, () {
+        pause();
+        _sleepTimer = null;
+        _sleepTimerDuration = null;
+        notifyListeners();
+      });
+    }
+    notifyListeners();
+  }
+
+  void cancelSleepTimer() {
+    setSleepTimer(null);
+  }
+
+  Future<void> removeFromPlaylist(AudioFile audio) async {
+    final index = _playlist.indexWhere((a) => a.id == audio.id);
+    if (index == -1) return;
+
+    final wasCurrent = _currentAudio?.id == audio.id;
+    _playlist.removeAt(index);
+
+    if (wasCurrent) {
+      if (_playlist.isEmpty) {
+        await stop();
+      } else {
+        final nextIndex = index >= _playlist.length ? 0 : index;
+        await play(_playlist[nextIndex]);
+      }
+    } else {
+      notifyListeners();
+    }
+  }
+
   String formatDuration(Duration d) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     final minutes = twoDigits(d.inMinutes.remainder(60));
@@ -587,6 +636,7 @@ class AudioPlayerProvider extends ChangeNotifier {
     _durationSub?.cancel();
     _playerStateSub?.cancel();
     _completeSub?.cancel();
+    _sleepTimer?.cancel();
     _player.dispose();
     super.dispose();
   }
