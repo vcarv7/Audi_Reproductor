@@ -216,7 +216,7 @@ class _HomeScreenState extends State<HomeScreen>
           ],
         ),
       ),
-      floatingActionButton: _buildFab(provider, playlist, hasCurrentAudio),
+      floatingActionButton: _showFullPlayer ? null : _buildFab(provider, playlist, hasCurrentAudio),
     );
   }
 
