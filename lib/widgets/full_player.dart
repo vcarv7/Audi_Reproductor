@@ -8,6 +8,7 @@ import 'gradient_seek_bar.dart';
 import 'audio_visualizer.dart';
 import 'player_controls.dart';
 import 'options_menu_sheet.dart';
+import 'marquee_text.dart';
 
 class FullPlayer extends StatelessWidget {
   final VoidCallback onCollapse;
@@ -94,32 +95,14 @@ class FullPlayer extends StatelessWidget {
             AudioVisualizer(isPlaying: provider.isPlaying),
             const SizedBox(height: 16),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                children: [
-                  Text(
-                    current?.name ?? 'Sin canción',
-                    style: const TextStyle(
-                      color: AppTheme.textPrimary,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (current?.artist != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      current!.artist!,
-                      style: TextStyle(
-                        color: AppTheme.textSecondary,
-                        fontSize: 16,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ],
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: MarqueeText(
+                text: current?.fileName ?? 'Sin canción',
+                style: const TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
             const SizedBox(height: 24),

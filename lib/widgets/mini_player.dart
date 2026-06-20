@@ -66,7 +66,7 @@ class MiniPlayer extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         MarqueeText(
-                          text: current.name,
+                          text: current.fileName,
                           style: const TextStyle(
                             color: AppTheme.textPrimary,
                             fontSize: 14,
@@ -76,17 +76,6 @@ class MiniPlayer extends StatelessWidget {
                           speed: 25,
                           pauseDuration: const Duration(seconds: 4),
                           continuous: true,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          current.artist ?? 'Artista desconocido',
-                          style: TextStyle(
-                            color: AppTheme.textSecondary,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w400,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
