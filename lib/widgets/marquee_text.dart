@@ -10,7 +10,7 @@ class MarqueeText extends StatefulWidget {
     super.key,
     required this.text,
     required this.style,
-    this.speed = 30.0,
+    this.speed = 40.0,
     this.textAlign = TextAlign.center,
   });
 
@@ -29,10 +29,22 @@ class _MarqueeTextState extends State<MarqueeText>
       vsync: this,
       duration: const Duration(seconds: 1),
     );
+    _controller.addStatusListener(_onStatusChange);
+  }
+
+  void _onStatusChange(AnimationStatus status) {
+    if (status == AnimationStatus.completed) {
+      Future.delayed(const Duration(seconds: 6), () {
+        if (mounted) {
+          _controller.forward(from: 0);
+        }
+      });
+    }
   }
 
   @override
   void dispose() {
+    _controller.removeStatusListener(_onStatusChange);
     _controller.dispose();
     super.dispose();
   }
@@ -69,8 +81,9 @@ class _MarqueeTextState extends State<MarqueeText>
           milliseconds: ((distance / widget.speed) * 1000).round(),
         );
         _controller.duration = duration;
-        if (!_controller.isAnimating) {
-          _controller.repeat();
+        if (_controller.status != AnimationStatus.forward &&
+            _controller.status != AnimationStatus.completed) {
+          _controller.forward(from: 0);
         }
 
         return ClipRect(

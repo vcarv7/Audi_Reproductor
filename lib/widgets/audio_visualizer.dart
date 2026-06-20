@@ -80,12 +80,12 @@ class _AudioVisualizerState extends State<AudioVisualizer>
         crossAxisAlignment: CrossAxisAlignment.end,
         children: List.generate(widget.barCount, (index) {
           return Container(
-            width: 3,
-            margin: const EdgeInsets.symmetric(horizontal: 1.5),
+            width: 8,
+            margin: const EdgeInsets.symmetric(horizontal: 2),
             height: widget.height * _barHeights[index],
             decoration: BoxDecoration(
               gradient: AppTheme.seekBarGradient,
-              borderRadius: BorderRadius.circular(1.5),
+              borderRadius: BorderRadius.circular(3),
             ),
           );
         }),
