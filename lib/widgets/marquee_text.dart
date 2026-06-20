@@ -5,6 +5,8 @@ class MarqueeText extends StatefulWidget {
   final TextStyle style;
   final double speed;
   final TextAlign textAlign;
+  final Duration pauseDuration;
+  final bool continuous;
 
   const MarqueeText({
     super.key,
@@ -12,6 +14,8 @@ class MarqueeText extends StatefulWidget {
     required this.style,
     this.speed = 40.0,
     this.textAlign = TextAlign.center,
+    this.pauseDuration = const Duration(seconds: 6),
+    this.continuous = false,
   });
 
   @override
@@ -21,6 +25,7 @@ class MarqueeText extends StatefulWidget {
 class _MarqueeTextState extends State<MarqueeText>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  bool _hasStatusListener = false;
 
   @override
   void initState() {
@@ -29,12 +34,15 @@ class _MarqueeTextState extends State<MarqueeText>
       vsync: this,
       duration: const Duration(seconds: 1),
     );
-    _controller.addStatusListener(_onStatusChange);
+    if (!widget.continuous) {
+      _controller.addStatusListener(_onStatusChange);
+      _hasStatusListener = true;
+    }
   }
 
   void _onStatusChange(AnimationStatus status) {
     if (status == AnimationStatus.completed) {
-      Future.delayed(const Duration(seconds: 6), () {
+      Future.delayed(widget.pauseDuration, () {
         if (mounted) {
           _controller.forward(from: 0);
         }
@@ -44,7 +52,9 @@ class _MarqueeTextState extends State<MarqueeText>
 
   @override
   void dispose() {
-    _controller.removeStatusListener(_onStatusChange);
+    if (_hasStatusListener) {
+      _controller.removeStatusListener(_onStatusChange);
+    }
     _controller.dispose();
     super.dispose();
   }
@@ -83,7 +93,11 @@ class _MarqueeTextState extends State<MarqueeText>
         _controller.duration = duration;
         if (_controller.status != AnimationStatus.forward &&
             _controller.status != AnimationStatus.completed) {
-          _controller.forward(from: 0);
+          if (widget.continuous) {
+            _controller.repeat();
+          } else {
+            _controller.forward(from: 0);
+          }
         }
 
         return ClipRect(
