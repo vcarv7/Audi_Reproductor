@@ -75,6 +75,7 @@ class MiniPlayer extends StatelessWidget {
                           ),
                           speed: 25,
                           pauseDuration: const Duration(seconds: 4),
+                          continuous: true,
                         ),
                         const SizedBox(height: 2),
                         Text(
