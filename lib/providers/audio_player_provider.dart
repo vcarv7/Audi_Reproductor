@@ -30,8 +30,10 @@ class AudioPlayerProvider extends ChangeNotifier {
   bool _scanResultShown = false;
   String? _lastError;
   double _playbackSpeed = 1.0;
+  double _volume = 1.0;
   Timer? _sleepTimer;
   Duration? _sleepTimerDuration;
+  final Set<String> _likedIds = {};
 
   List<Album> _albums = [];
   List<Artist> _artists = [];
@@ -67,7 +69,10 @@ class AudioPlayerProvider extends ChangeNotifier {
   bool get scanResultShown => _scanResultShown;
   String? get lastError => _lastError;
   double get playbackSpeed => _playbackSpeed;
+  double get volume => _volume;
   Duration? get sleepTimerDuration => _sleepTimerDuration;
+
+  bool isLiked(String id) => _likedIds.contains(id);
 
   Future<Uint8List?> getArtwork(int id, {int size = 300}) async {
     if (_artworkCache.containsKey(id)) {
@@ -582,6 +587,21 @@ class AudioPlayerProvider extends ChangeNotifier {
   Future<void> setPlaybackSpeed(double speed) async {
     _playbackSpeed = speed;
     await _player.setPlaybackRate(speed);
+    notifyListeners();
+  }
+
+  Future<void> setVolume(double value) async {
+    _volume = value.clamp(0.0, 1.0);
+    await _player.setVolume(_volume);
+    notifyListeners();
+  }
+
+  void toggleLike(String id) {
+    if (_likedIds.contains(id)) {
+      _likedIds.remove(id);
+    } else {
+      _likedIds.add(id);
+    }
     notifyListeners();
   }
 

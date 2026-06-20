@@ -110,6 +110,7 @@ class OptionsMenuSheet extends StatelessWidget {
                 showModalBottomSheet(
                   context: context,
                   backgroundColor: Colors.transparent,
+                  barrierColor: Colors.black,
                   isScrollControlled: true,
                   builder: (_) => SongInfoSheet(audio: audio),
                 );
@@ -163,6 +164,7 @@ class OptionsMenuSheet extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      barrierColor: Colors.black,
       builder: (_) => _SleepTimerSheet(provider: provider),
     );
   }
@@ -172,6 +174,7 @@ class OptionsMenuSheet extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      barrierColor: Colors.black,
       builder: (_) => _SpeedPickerSheet(provider: provider),
     );
   }

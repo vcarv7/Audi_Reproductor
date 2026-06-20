@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/audio_player_provider.dart';
 import '../theme/app_theme.dart';
-import 'vinyl_disc.dart';
 import 'gradient_seek_bar.dart';
 import 'audio_visualizer.dart';
 import 'player_controls.dart';
 import 'options_menu_sheet.dart';
+import 'full_artwork.dart';
+import 'marquee_text.dart';
+import 'queue_sheet.dart';
 
 class FullPlayer extends StatelessWidget {
   final VoidCallback onCollapse;
@@ -27,6 +29,16 @@ class FullPlayer extends StatelessWidget {
       case PlayerState.disposed:
         return 'Detenida';
     }
+  }
+
+  void _showQueue(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black,
+      isScrollControlled: true,
+      builder: (_) => const QueueSheet(),
+    );
   }
 
   @override
@@ -76,6 +88,7 @@ class FullPlayer extends StatelessWidget {
                             showModalBottomSheet(
                               context: context,
                               backgroundColor: Colors.transparent,
+                              barrierColor: Colors.black,
                               isScrollControlled: true,
                               builder: (_) =>
                                   OptionsMenuSheet(audio: current),
@@ -86,39 +99,57 @@ class FullPlayer extends StatelessWidget {
               ),
             ),
             const Spacer(flex: 1),
-            VinylDisc(
-              isPlaying: provider.isPlaying,
-              size: MediaQuery.of(context).size.width * 0.55,
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 400),
+              transitionBuilder: (child, animation) => FadeTransition(
+                opacity: animation,
+                child: child,
+              ),
+              child: current == null
+                  ? const SizedBox.shrink()
+                  : FullArtwork(
+                      key: ValueKey(current.id),
+                      audio: current,
+                      size: MediaQuery.of(context).size.width * 0.7,
+                    ),
             ),
             const Spacer(flex: 1),
-            AudioVisualizer(isPlaying: provider.isPlaying),
-            const SizedBox(height: 16),
+            if (provider.isPlaying)
+              AudioVisualizer(isPlaying: provider.isPlaying),
+            if (provider.isPlaying) const SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
+              child: Row(
                 children: [
-                  Text(
-                    current?.name ?? 'Sin canción',
-                    style: const TextStyle(
-                      color: AppTheme.textPrimary,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        MarqueeText(
+                          text: current?.name ?? 'Sin canción',
+                          style: const TextStyle(
+                            color: AppTheme.textPrimary,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        if (current?.artist != null) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            current!.artist!,
+                            style: TextStyle(
+                              color: AppTheme.textSecondary,
+                              fontSize: 16,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ],
                     ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                   ),
-                  if (current?.artist != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      current!.artist!,
-                      style: TextStyle(
-                        color: AppTheme.textSecondary,
-                        fontSize: 16,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
+                  if (current != null) _LikeButton(audioId: current.id),
                 ],
               ),
             ),
@@ -131,9 +162,99 @@ class FullPlayer extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             const PlayerControls(),
+            const SizedBox(height: 16),
+            _SecondaryControls(onQueueTap: () => _showQueue(context)),
             const Spacer(flex: 1),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _LikeButton extends StatelessWidget {
+  final String audioId;
+
+  const _LikeButton({required this.audioId});
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.watch<AudioPlayerProvider>();
+    final isLiked = provider.isLiked(audioId);
+    return IconButton(
+      icon: Icon(
+        isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+        color: isLiked ? AppTheme.accent : Colors.white,
+        size: 28,
+      ),
+      onPressed: () => provider.toggleLike(audioId),
+    );
+  }
+}
+
+class _SecondaryControls extends StatelessWidget {
+  final VoidCallback onQueueTap;
+
+  const _SecondaryControls({required this.onQueueTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.watch<AudioPlayerProvider>();
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(
+              Icons.queue_music_rounded,
+              color: Colors.white,
+            ),
+            iconSize: 24,
+            onPressed: onQueueTap,
+          ),
+          IconButton(
+            icon: Icon(
+              Icons.cast_rounded,
+              color: AppTheme.textMuted.withValues(alpha: 0.5),
+            ),
+            iconSize: 24,
+            onPressed: null,
+          ),
+          Expanded(
+            child: Row(
+              children: [
+                Icon(
+                  provider.volume == 0
+                      ? Icons.volume_off_rounded
+                      : provider.volume < 0.5
+                          ? Icons.volume_down_rounded
+                          : Icons.volume_up_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                Expanded(
+                  child: SliderTheme(
+                    data: SliderTheme.of(context).copyWith(
+                      activeTrackColor: AppTheme.accent,
+                      inactiveTrackColor: AppTheme.surfaceLight,
+                      thumbColor: Colors.white,
+                      overlayColor:
+                          AppTheme.accent.withValues(alpha: 0.2),
+                      trackHeight: 3,
+                      thumbShape: const RoundSliderThumbShape(
+                        enabledThumbRadius: 6,
+                      ),
+                    ),
+                    child: Slider(
+                      value: provider.volume,
+                      onChanged: (v) => provider.setVolume(v),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

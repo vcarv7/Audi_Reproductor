@@ -189,6 +189,7 @@ class _FontSelectorTile extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      barrierColor: Colors.black,
       builder: (_) => _FontPickerSheet(
         currentFamily: fontProvider.fontFamily,
         onSelect: (family) {

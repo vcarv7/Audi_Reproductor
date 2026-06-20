@@ -78,7 +78,7 @@ class _ShuffleButton extends StatelessWidget {
     return IconButton(
       icon: Icon(
         Icons.shuffle_rounded,
-        color: provider.shuffle ? AppTheme.primary : AppTheme.textMuted,
+        color: provider.shuffle ? AppTheme.accent : AppTheme.textMuted,
         size: 24,
       ),
       onPressed: () => provider.toggleShuffle(),
@@ -106,7 +106,7 @@ class _RepeatButton extends StatelessWidget {
       icon: Icon(
         icon,
         color: provider.repeatMode != AudioRepeatMode.off
-            ? AppTheme.primary
+            ? AppTheme.accent
             : AppTheme.textMuted,
         size: 24,
       ),
