@@ -332,7 +332,10 @@ class _TracksTab extends StatelessWidget {
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
           HeroPlayAll(
-            onTap: () => provider.playList(playlist),
+            onTap: () => provider.playList(
+              playlist,
+              startRandom: true,
+            ),
             totalSongs: playlist.length,
           ),
           if (hasCurrentAudio)

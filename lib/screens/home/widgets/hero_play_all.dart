@@ -108,7 +108,7 @@ class _HeroPlayAllState extends State<HeroPlayAll>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Toda tu música',
+                      'Modo aleatorio',
                       style: TextStyle(
                         color: AppTheme.textPrimary,
                         fontSize: 20,
@@ -124,7 +124,7 @@ class _HeroPlayAllState extends State<HeroPlayAll>
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${widget.totalSongs} ${widget.totalSongs == 1 ? 'canción' : 'canciones'} listas',
+                      '${widget.totalSongs} ${widget.totalSongs == 1 ? 'canción' : 'canciones'} en cola',
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.85),
                         fontSize: 13,

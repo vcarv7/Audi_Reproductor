@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -489,11 +490,22 @@ class AudioPlayerProvider extends ChangeNotifier {
   }
 
   // Reproducir lista de canciones
-  Future<void> playList(List<AudioFile> songs, {int startIndex = 0}) async {
+  Future<void> playList(
+    List<AudioFile> songs, {
+    int startIndex = 0,
+    bool startRandom = false,
+  }) async {
     if (songs.isEmpty) return;
     _playlist.clear();
     _playlist.addAll(songs);
-    if (startIndex >= songs.length) startIndex = 0;
+    if (startRandom) {
+      startIndex = Random().nextInt(songs.length);
+      _shuffle = true;
+      _repeatMode = AudioRepeatMode.all;
+      notifyListeners();
+    } else if (startIndex >= songs.length) {
+      startIndex = 0;
+    }
     await play(songs[startIndex]);
   }
 
