@@ -3,16 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/audio_file.dart';
 import '../providers/audio_player_provider.dart';
-import '../theme/app_theme.dart';
+import 'vinyl_disc.dart';
 
 class FullArtwork extends StatelessWidget {
   final AudioFile audio;
   final double size;
+  final bool isPlaying;
 
   const FullArtwork({
     super.key,
     required this.audio,
     required this.size,
+    this.isPlaying = false,
   });
 
   @override
@@ -45,16 +47,9 @@ class FullArtwork extends StatelessWidget {
                 gaplessPlayback: true,
               );
             }
-            return Container(
-              decoration: BoxDecoration(
-                gradient: AppTheme.cardGradient,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Icon(
-                Icons.music_note,
-                color: Colors.white,
-                size: 80,
-              ),
+            return VinylDisc(
+              isPlaying: isPlaying,
+              size: size,
             );
           },
         ),

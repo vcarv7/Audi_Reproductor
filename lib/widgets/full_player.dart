@@ -8,7 +8,6 @@ import 'audio_visualizer.dart';
 import 'player_controls.dart';
 import 'options_menu_sheet.dart';
 import 'full_artwork.dart';
-import 'marquee_text.dart';
 import 'queue_sheet.dart';
 
 class FullPlayer extends StatelessWidget {
@@ -105,6 +104,7 @@ class FullPlayer extends StatelessWidget {
                   : FullArtwork(
                       key: ValueKey(current.id),
                       audio: current,
+                      isPlaying: provider.isPlaying,
                       size: MediaQuery.of(context).size.width * 0.7,
                     ),
             ),
@@ -131,13 +131,16 @@ class FullPlayer extends StatelessWidget {
             const SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: MarqueeText(
-                text: current?.fileName ?? 'Sin canción',
+              child: Text(
+                current?.fileName ?? 'Sin canción',
                 style: const TextStyle(
                   color: AppTheme.textPrimary,
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
                 ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             const SizedBox(height: 24),

@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../models/audio_file.dart';
 import '../providers/audio_player_provider.dart';
 import '../theme/app_theme.dart';
-import 'marquee_text.dart';
 
 class MiniPlayer extends StatelessWidget {
   final VoidCallback onExpand;
@@ -65,17 +64,16 @@ class MiniPlayer extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        MarqueeText(
-                          text: current.fileName,
+                        Text(
+                          current.fileName,
                           style: const TextStyle(
                             color: AppTheme.textPrimary,
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 0.2,
                           ),
-                          speed: 25,
-                          pauseDuration: const Duration(seconds: 4),
-                          continuous: true,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
