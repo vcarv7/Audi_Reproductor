@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../models/audio_file.dart';
 import '../providers/audio_player_provider.dart';
@@ -140,19 +141,64 @@ class _HomeScreenState extends State<HomeScreen>
       });
     }
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: AppTheme.backgroundGradient,
-        ),
-        child: Stack(
-          children: [
-            SafeArea(
-              child: Column(
-                children: [
-                  _buildHeader(provider),
-                  if (provider.isScanning && playlist.isEmpty)
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+
+        if (_showFullPlayer) {
+          _toggleFullPlayer();
+          return;
+        }
+
+        final shouldExit = await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            backgroundColor: const Color(0xFF1A1A1A),
+            title: Text(
+              'Salir de EcoPlayer',
+              style: TextStyle(color: AppTheme.textPrimary),
+            ),
+            content: Text(
+              '¿Estás seguro que quieres salir?',
+              style: TextStyle(color: AppTheme.textSecondary),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: Text(
+                  'Cancelar',
+                  style: TextStyle(color: AppTheme.textMuted),
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: Text(
+                  'Salir',
+                  style: TextStyle(color: AppTheme.accent),
+                ),
+              ),
+            ],
+          ),
+        );
+
+        if (shouldExit ?? false) {
+          SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
+        extendBodyBehindAppBar: true,
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: AppTheme.backgroundGradient,
+          ),
+          child: Stack(
+            children: [
+              SafeArea(
+                child: Column(
+                  children: [
+                    _buildHeader(provider),
+                    if (provider.isScanning && playlist.isEmpty)
                     Expanded(
                       child: _ScanningWidget(
                         count: provider.scannedCount,
@@ -217,6 +263,7 @@ class _HomeScreenState extends State<HomeScreen>
         ),
       ),
       floatingActionButton: _showFullPlayer ? null : _buildFab(provider, playlist, hasCurrentAudio),
+      ),
     );
   }
 
