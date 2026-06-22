@@ -7,6 +7,7 @@ import '../providers/audio_player_provider.dart';
 import '../providers/font_provider.dart';
 import '../providers/settings_provider.dart';
 import '../theme/app_theme.dart';
+import '../widgets/styled_snackbar.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -22,18 +23,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
   }
 
-  Future<void> _showSnackBar(String message) async {
+  Future<void> _showSnackBar(String message,
+      {SnackbarType type = SnackbarType.info}) async {
     if (!mounted) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: AppTheme.surfaceLight,
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 2),
-        ),
-      );
+    StyledSnackBar.show(context, message: message, type: type);
   }
 
   @override
@@ -149,7 +142,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       onTap: () async {
                         context.read<AudioPlayerProvider>().clearArtworkCache();
                         if (!mounted) return;
-                        await _showSnackBar('Caché limpiado');
+                        await _showSnackBar('Caché limpiado', type: SnackbarType.success);
                       },
                     ),
                     const SizedBox(height: 24),
@@ -190,8 +183,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           Text(
                             'EcoPlayer',
                             style: TextStyle(
-                              color:
-                                  AppTheme.textMuted.withValues(alpha: 0.6),
+                              color: AppTheme.textMuted.withValues(alpha: 0.6),
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                               letterSpacing: 2,
@@ -201,8 +193,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           Text(
                             'v1.0.0',
                             style: TextStyle(
-                              color:
-                                  AppTheme.textMuted.withValues(alpha: 0.5),
+                              color: AppTheme.textMuted.withValues(alpha: 0.5),
                               fontSize: 11,
                             ),
                           ),
@@ -264,7 +255,7 @@ class _FontSelectorTile extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Fuente del título',
+                        'Fuente',
                         style: TextStyle(
                           color: AppTheme.textPrimary,
                           fontSize: 15,
@@ -314,10 +305,7 @@ class _FontPickerSheet extends StatelessWidget {
   final String currentFamily;
   final ValueChanged<String> onSelect;
 
-  const _FontPickerSheet({
-    required this.currentFamily,
-    required this.onSelect,
-  });
+  const _FontPickerSheet({required this.currentFamily, required this.onSelect});
 
   @override
   Widget build(BuildContext context) {
@@ -352,8 +340,7 @@ class _FontPickerSheet extends StatelessWidget {
           ...FontProvider.availableFonts.map((font) {
             final isSelected = font == currentFamily;
             return Container(
-              margin:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               decoration: BoxDecoration(
                 color: isSelected
                     ? AppTheme.accent.withValues(alpha: 0.1)
@@ -395,8 +382,7 @@ class _FontPickerSheet extends StatelessWidget {
                                 FontProvider.fontDisplayNames[font] ?? font,
                                 style: TextStyle(
                                   color: isSelected
-                                      ? AppTheme.accent
-                                          .withValues(alpha: 0.7)
+                                      ? AppTheme.accent.withValues(alpha: 0.7)
                                       : AppTheme.textMuted,
                                   fontSize: 12,
                                 ),
@@ -488,10 +474,7 @@ class _SettingsTile extends StatelessWidget {
                     gradient: enabled
                         ? AppTheme.buttonGradient
                         : LinearGradient(
-                            colors: [
-                              AppTheme.surfaceLight,
-                              AppTheme.surface,
-                            ],
+                            colors: [AppTheme.surfaceLight, AppTheme.surface],
                           ),
                   ),
                   child: Icon(

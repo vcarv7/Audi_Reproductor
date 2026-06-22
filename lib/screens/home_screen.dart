@@ -6,6 +6,7 @@ import '../providers/audio_player_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/mini_player.dart';
 import '../widgets/full_player.dart';
+import '../widgets/styled_snackbar.dart';
 import '../widgets/track_card.dart';
 import '../widgets/album_grid_card.dart';
 import '../widgets/artist_grid_card.dart';
@@ -64,49 +65,26 @@ class _HomeScreenState extends State<HomeScreen>
   void _showErrorSnackbar(String message) {
     if (_showingError) return;
     _showingError = true;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.error_outline, color: AppTheme.accent, size: 20),
-              const SizedBox(width: 12),
-              Expanded(child: Text(message)),
-            ],
-          ),
-          backgroundColor: AppTheme.surfaceLight,
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 2),
-        ),
-      ).closed.then((_) => _showingError = false);
+    StyledSnackBar.show(
+      context,
+      message: message,
+      type: SnackbarType.error,
+    );
+    Future.delayed(const Duration(seconds: 3), () {
+      _showingError = false;
+    });
   }
 
   void _showScanResultSnackbar(int count) {
     context.read<AudioPlayerProvider>().markScanResultShown();
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle_outline,
-                  color: AppTheme.accent, size: 20),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  count == 0
-                      ? 'No se encontraron canciones'
-                      : 'Se encontraron $count ${count == 1 ? 'canción' : 'canciones'}',
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: AppTheme.surfaceLight,
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 2),
-        ),
-      );
+    StyledSnackBar.show(
+      context,
+      message: count == 0
+          ? 'No se encontraron canciones'
+          : 'Se encontraron $count ${count == 1 ? 'canción' : 'canciones'}',
+      type: count == 0 ? SnackbarType.info : SnackbarType.success,
+      duration: const Duration(seconds: 4),
+    );
   }
 
   void _toggleFullPlayer() {
