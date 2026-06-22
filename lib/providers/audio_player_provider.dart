@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -648,6 +649,33 @@ class AudioPlayerProvider extends ChangeNotifier {
     final minutes = twoDigits(d.inMinutes.remainder(60));
     final seconds = twoDigits(d.inSeconds.remainder(60));
     return '$minutes:$seconds';
+  }
+
+  int getCacheSize() {
+    int total = 0;
+    for (final bytes in _artworkCache.values) {
+      total += bytes.length;
+    }
+    return total;
+  }
+
+  void clearArtworkCache() {
+    _artworkCache.clear();
+    notifyListeners();
+  }
+
+  int removeMissingFiles() {
+    final initial = _playlist.length;
+    _playlist.removeWhere((audio) {
+      try {
+        return !File(audio.path).existsSync();
+      } catch (_) {
+        return true;
+      }
+    });
+    final removed = initial - _playlist.length;
+    notifyListeners();
+    return removed;
   }
 
   @override
