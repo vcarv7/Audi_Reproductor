@@ -100,18 +100,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const SizedBox(height: 24),
                     const _SectionTitle(text: 'Biblioteca'),
                     _SettingsTile(
-                      icon: Icons.refresh_rounded,
-                      title: 'Re-escanear música',
-                      subtitle: 'Buscar nuevos archivos de audio',
-                      onTap: () async {
-                        await context
-                            .read<AudioPlayerProvider>()
-                            .scanDeviceMusic();
-                        if (!mounted) return;
-                        await _showSnackBar('Reescaneando música...');
-                      },
-                    ),
-                    _SettingsTile(
                       icon: Icons.cleaning_services_rounded,
                       title: 'Eliminar archivos faltantes',
                       subtitle: 'Quita canciones cuyos archivos ya no existen',
