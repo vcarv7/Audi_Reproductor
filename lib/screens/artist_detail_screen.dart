@@ -39,36 +39,39 @@ class ArtistDetailScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(24),
                 child: Row(
                   children: [
-                    Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: artist.isUnknown
-                            ? const LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [Color(0xFF2A2A3E), Color(0xFF1A1A2E)],
-                              )
-                            : const LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [Color(0xFF8B5CF6), Color(0xFF4C1D95)],
-                              ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppTheme.accent.withValues(alpha: 0.3),
-                            blurRadius: 20,
-                            spreadRadius: 2,
-                          ),
-                        ],
-                      ),
-                      child: Icon(
-                        artist.isUnknown
-                            ? Icons.question_mark_rounded
-                            : Icons.person_rounded,
-                        color: Colors.white,
-                        size: 60,
+                    Hero(
+                      tag: 'artist-art-${artist.id}',
+                      child: Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: artist.isUnknown
+                              ? const LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [Color(0xFF2A2A3E), Color(0xFF1A1A2E)],
+                                )
+                              : const LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [Color(0xFF8B5CF6), Color(0xFF4C1D95)],
+                                ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.accent.withValues(alpha: 0.3),
+                              blurRadius: 20,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          artist.isUnknown
+                              ? Icons.question_mark_rounded
+                              : Icons.person_rounded,
+                          color: Colors.white,
+                          size: 60,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 20),

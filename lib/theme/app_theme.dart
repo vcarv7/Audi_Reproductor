@@ -31,6 +31,21 @@ class AppTheme {
         colors: [Color(0xFF1A1A1A), primary],
       );
 
+  static LinearGradient get heroGradient => const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFFE50914), Color(0xFF7A0007)],
+      );
+
+  static LinearGradient get heroGradientDark => const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFF7A0007), Color(0xFF1A0000)],
+      );
+
+  static const Color surfaceCard = Color(0xFF141414);
+  static const Color surfaceCardLight = Color(0xFF1F1F1F);
+
   static ThemeData themeWithFont(String fontFamily) {
     return ThemeData(
       brightness: Brightness.dark,

@@ -43,38 +43,38 @@ class _AlbumGridCardState extends State<AlbumGridCard> {
               width: 1,
             ),
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Stack(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    AspectRatio(
-                      aspectRatio: 1,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: isUnknown
-                              ? const LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [Color(0xFF2A2A3E), Color(0xFF1A1A2E)],
-                                )
-                              : const LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [Color(0xFFE50914), Color(0xFF7A0007)],
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Stack(
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          AspectRatio(
+                            aspectRatio: 1,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: isUnknown
+                                    ? const LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: [Color(0xFF2A2A3E), Color(0xFF1A1A2E)],
+                                      )
+                                    : const LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: [Color(0xFFE50914), Color(0xFF7A0007)],
+                                      ),
+                              ),
+                              child: Center(
+                                child: Icon(
+                                  Icons.album_rounded,
+                                  color: Colors.white.withValues(alpha: 0.7),
+                                  size: 56,
                                 ),
-                        ),
-                        child: Center(
-                          child: Icon(
-                            Icons.album_rounded,
-                            color: Colors.white.withValues(alpha: 0.7),
-                            size: 56,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                    ),
                     Padding(
                       padding: const EdgeInsets.all(8),
                       child: Column(

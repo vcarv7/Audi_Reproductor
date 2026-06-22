@@ -39,28 +39,31 @@ class AlbumDetailScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(24),
                 child: Row(
                   children: [
-                    Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        gradient: album.isUnknown
-                            ? const LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [Color(0xFF2A2A3E), Color(0xFF1A1A2E)],
-                              )
-                            : const LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [Color(0xFFE50914), Color(0xFF7A0007)],
-                              ),
-                      ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.album_rounded,
-                          color: Colors.white,
-                          size: 56,
+                    Hero(
+                      tag: 'album-art-${album.id}',
+                      child: Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          gradient: album.isUnknown
+                              ? const LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [Color(0xFF2A2A3E), Color(0xFF1A1A2E)],
+                                )
+                              : const LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [Color(0xFFE50914), Color(0xFF7A0007)],
+                                ),
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.album_rounded,
+                            color: Colors.white,
+                            size: 56,
+                          ),
                         ),
                       ),
                     ),

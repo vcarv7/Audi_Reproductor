@@ -10,12 +10,18 @@ import '../widgets/styled_snackbar.dart';
 import '../widgets/track_card.dart';
 import '../widgets/album_grid_card.dart';
 import '../widgets/artist_grid_card.dart';
-import '../widgets/genre_grid_card.dart';
-import 'settings_screen.dart';
-import 'search_screen.dart';
+import 'home/widgets/animated_header.dart';
+import 'home/widgets/animated_count_badge.dart';
+import 'home/widgets/artist_banner.dart';
+import 'home/widgets/featured_albums.dart';
+import 'home/widgets/genre_chips.dart';
+import 'home/widgets/hero_play_all.dart';
+import 'home/widgets/now_playing_card.dart';
+import 'home/widgets/pill_tab_bar.dart';
+import 'home/widgets/recent_carousel.dart';
+import 'home/widgets/vinyl_scan_state.dart';
 import 'album_detail_screen.dart';
 import 'artist_detail_screen.dart';
-import 'genre_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -31,6 +37,9 @@ class _HomeScreenState extends State<HomeScreen>
   late AnimationController _animationController;
   late Animation<double> _animation;
   late TabController _tabController;
+  late AnimationController _bgController;
+
+  static const _tabLabels = ['Pistas', 'Álbumes', 'Géneros', 'Artistas'];
 
   @override
   void initState() {
@@ -45,6 +54,10 @@ class _HomeScreenState extends State<HomeScreen>
     );
     _tabController = TabController(length: 4, vsync: this);
     _tabController.addListener(_onTabChanged);
+    _bgController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 12),
+    )..repeat();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AudioPlayerProvider>().scanDeviceMusic(autoPlay: false);
     });
@@ -55,6 +68,7 @@ class _HomeScreenState extends State<HomeScreen>
     _animationController.dispose();
     _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
+    _bgController.dispose();
     super.dispose();
   }
 
@@ -98,11 +112,27 @@ class _HomeScreenState extends State<HomeScreen>
     });
   }
 
+  int _currentCount(AudioPlayerProvider provider) {
+    switch (_tabController.index) {
+      case 0:
+        return provider.playlist.length;
+      case 1:
+        return provider.albums.length;
+      case 2:
+        return provider.genres.length;
+      case 3:
+        return provider.artists.length;
+      default:
+        return 0;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AudioPlayerProvider>();
     final playlist = provider.playlist;
     final hasCurrentAudio = provider.currentAudio != null;
+    final accent = provider.dynamicAccent;
 
     if (provider.lastError != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -166,294 +196,215 @@ class _HomeScreenState extends State<HomeScreen>
       },
       child: Scaffold(
         extendBodyBehindAppBar: true,
-        body: Container(
-          decoration: BoxDecoration(
-            gradient: AppTheme.backgroundGradient,
-          ),
-          child: Stack(
-            children: [
-              SafeArea(
-                child: Column(
-                  children: [
-                    _buildHeader(provider),
-                    if (provider.isScanning && playlist.isEmpty)
-                    Expanded(
-                      child: _ScanningWidget(
-                        count: provider.scannedCount,
-                      ),
-                    )
-                  else if (playlist.isEmpty && !provider.permissionGranted)
-                    Expanded(
-                      child: _EmptyState(
-                        isPermissionDenied: true,
-                        onRetry: () => provider.scanDeviceMusic(),
-                      ),
-                    )
-                  else if (playlist.isEmpty)
-                    Expanded(
-                      child: _EmptyState(
-                        isPermissionDenied: false,
-                        onRetry: () => provider.scanDeviceMusic(),
-                      ),
-                    )
-                  else
-                    Expanded(
-                      child: Column(
-                        children: [
-                          _buildTabBar(),
-                          Expanded(
-                            child: TabBarView(
-                              controller: _tabController,
-                              physics: const PageScrollPhysics().applyTo(
-                                const BouncingScrollPhysics(),
-                              ),
-                              children: [
-                                _TracksTab(
-                                  hasCurrentAudio: hasCurrentAudio,
-                                ),
-                                _AlbumsTab(),
-                                _GenresTab(),
-                                _ArtistsTab(),
-                              ],
-                            ),
+        body: AnimatedBuilder(
+          animation: _bgController,
+          builder: (context, _) {
+            return Container(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment(
+                    -0.5 + 0.3 * _bgController.value,
+                    -0.8 + 0.2 * _bgController.value,
+                  ),
+                  radius: 1.5,
+                  colors: [
+                    accent.withValues(alpha: 0.06),
+                    AppTheme.background,
+                    AppTheme.background,
+                  ],
+                  stops: const [0.0, 0.5, 1.0],
+                ),
+              ),
+              child: Stack(
+                children: [
+                  SafeArea(
+                    child: Column(
+                      children: [
+                        const AnimatedHeader(),
+                        PillTabBar(
+                          controller: _tabController,
+                          labels: _tabLabels,
+                        ),
+                        AnimatedCountBadge(
+                          count: _currentCount(provider),
+                          tabController: _tabController,
+                        ),
+                        Expanded(
+                          child: _buildContent(
+                            provider,
+                            playlist,
+                            hasCurrentAudio,
                           ),
-                        ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (hasCurrentAudio && !_showFullPlayer)
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: MiniPlayer(onExpand: _toggleFullPlayer),
+                    ),
+                  if (hasCurrentAudio && _showFullPlayer)
+                    Positioned.fill(
+                      child: FadeTransition(
+                        opacity: _animation,
+                        child: FullPlayer(onCollapse: _toggleFullPlayer),
                       ),
                     ),
                 ],
               ),
-            ),
-            if (hasCurrentAudio && !_showFullPlayer)
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: MiniPlayer(onExpand: _toggleFullPlayer),
-              ),
-            if (hasCurrentAudio && _showFullPlayer)
-              Positioned.fill(
-                child: FadeTransition(
-                  opacity: _animation,
-                  child: FullPlayer(onCollapse: _toggleFullPlayer),
-                ),
-              ),
-          ],
-        ),
-      ),
-      floatingActionButton: _showFullPlayer ? null : _buildFab(provider, playlist, hasCurrentAudio),
-      ),
-    );
-  }
-
-  Widget? _buildFab(AudioPlayerProvider provider, List<AudioFile> playlist, bool hasCurrentAudio) {
-    if (_tabController.index != 0) return null;
-    if (playlist.isEmpty) return null;
-    return Padding(
-      padding: EdgeInsets.only(bottom: hasCurrentAudio ? 80 : 16),
-      child: FloatingActionButton.extended(
-        onPressed: () {
-          context.read<AudioPlayerProvider>().playList(playlist);
-        },
-        backgroundColor: AppTheme.accent,
-        icon: const Icon(Icons.play_arrow_rounded, color: Colors.white),
-        label: const Text(
-          'Reproducir todo',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w700,
-          ),
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _buildHeader(AudioPlayerProvider provider) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => const SettingsScreen(),
-              ),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: ColorFiltered(
-                colorFilter: const ColorFilter.mode(
-                  AppTheme.background,
-                  BlendMode.lighten,
-                ),
-                child: Image.asset(
-                  'lib/assets/icons/screen.png',
-                  width: 36,
-                  height: 36,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            'EcoPlayer',
-            style: TextStyle(
-              color: AppTheme.accent,
-              fontSize: 24,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 2,
-            ),
-          ),
-          const Spacer(),
-          IconButton(
-            icon: Icon(
-              Icons.search_rounded,
-              color: AppTheme.textSecondary,
-            ),
-            iconSize: 26,
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => const SearchScreen(),
-              ),
-            ),
-          ),
-        ],
+  Widget _buildContent(
+    AudioPlayerProvider provider,
+    List<AudioFile> playlist,
+    bool hasCurrentAudio,
+  ) {
+    if (provider.isScanning && playlist.isEmpty) {
+      return VinylScanState(count: provider.scannedCount);
+    }
+    if (playlist.isEmpty && !provider.permissionGranted) {
+      return _EmptyState(
+        isPermissionDenied: true,
+        onRetry: () => provider.scanDeviceMusic(),
+      );
+    }
+    if (playlist.isEmpty) {
+      return _EmptyState(
+        isPermissionDenied: false,
+        onRetry: () => provider.scanDeviceMusic(),
+      );
+    }
+    return TabBarView(
+      controller: _tabController,
+      physics: const PageScrollPhysics().applyTo(
+        const BouncingScrollPhysics(),
       ),
-    );
-  }
-
-  Widget _buildTabBar() {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: Colors.white.withValues(alpha: 0.05),
-            width: 1,
-          ),
-        ),
-      ),
-      child: TabBar(
-        controller: _tabController,
-        isScrollable: true,
-        tabAlignment: TabAlignment.start,
-        labelColor: AppTheme.accent,
-        unselectedLabelColor: AppTheme.textMuted,
-        indicatorColor: AppTheme.accent,
-        indicatorWeight: 3,
-        labelStyle: const TextStyle(
-          fontWeight: FontWeight.w800,
-          fontSize: 18,
-          letterSpacing: 0.5,
-        ),
-        unselectedLabelStyle: const TextStyle(
-          fontWeight: FontWeight.w500,
-          fontSize: 18,
-        ),
-        tabs: const [
-          Tab(text: 'Pistas'),
-          Tab(text: 'Álbumes'),
-          Tab(text: 'Géneros'),
-          Tab(text: 'Artistas'),
-        ],
-      ),
-    );
-  }
-}
-
-class _ScanningWidget extends StatelessWidget {
-  final int count;
-
-  const _ScanningWidget({required this.count});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SizedBox(
-              width: 60,
-              height: 60,
-              child: CircularProgressIndicator(
-                strokeWidth: 4,
-                color: AppTheme.accent,
-              ),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'Escaneando tu música...',
-              style: TextStyle(
-                color: AppTheme.textPrimary,
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '$count ${count == 1 ? 'canción encontrada' : 'canciones encontradas'}',
-              style: TextStyle(
-                color: AppTheme.textMuted,
-                fontSize: 14,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _TracksTab extends StatelessWidget {
-  final bool hasCurrentAudio;
-
-  const _TracksTab({required this.hasCurrentAudio});
-
-  @override
-  Widget build(BuildContext context) {
-    final provider = context.watch<AudioPlayerProvider>();
-    final playlist = provider.playlist;
-
-    return Column(
       children: [
-        _CountBadge(count: playlist.length),
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: () => provider.scanDeviceMusic(autoPlay: false),
-            color: AppTheme.accent,
-            backgroundColor: AppTheme.surface,
-            child: ListView.builder(
-              padding: EdgeInsets.only(
-                top: 4,
-                bottom: hasCurrentAudio ? 140 : 90,
-              ),
-              itemCount: playlist.length,
-              itemBuilder: (context, index) {
-                final audio = playlist[index];
-                final isActive = provider.currentAudio?.id == audio.id;
-                final isPlaying = provider.isPlaying && isActive;
-                return TrackCard(
-                  audio: audio,
-                  isActive: isActive,
-                  isPlaying: isPlaying,
-                  onTap: () => provider.play(audio),
-                );
-              },
-            ),
-          ),
+        _TracksTab(
+          playlist: playlist,
+          provider: provider,
+          hasCurrentAudio: hasCurrentAudio,
+        ),
+        _AlbumsTab(
+          albums: provider.albums,
+          provider: provider,
+        ),
+        _GenresTab(genres: provider.genres),
+        _ArtistsTab(
+          artists: provider.artists,
+          provider: provider,
         ),
       ],
     );
   }
 }
 
-class _AlbumsTab extends StatelessWidget {
+class _TracksTab extends StatelessWidget {
+  final List<AudioFile> playlist;
+  final AudioPlayerProvider provider;
+  final bool hasCurrentAudio;
+
+  const _TracksTab({
+    required this.playlist,
+    required this.provider,
+    required this.hasCurrentAudio,
+  });
+
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<AudioPlayerProvider>();
-    final albums = provider.albums;
+    return RefreshIndicator(
+      onRefresh: () => provider.scanDeviceMusic(autoPlay: false),
+      color: AppTheme.accent,
+      backgroundColor: AppTheme.surface,
+      child: ListView(
+        padding: EdgeInsets.only(
+          top: 4,
+          bottom: hasCurrentAudio ? 140 : 100,
+        ),
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          HeroPlayAll(
+            onTap: () => provider.playList(playlist),
+            totalSongs: playlist.length,
+          ),
+          if (hasCurrentAudio)
+            NowPlayingCard(
+              audio: provider.currentAudio!,
+              position: provider.position,
+              duration: provider.duration,
+              isPlaying: provider.isPlaying,
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => Scaffold(
+                      body: FullPlayer(onCollapse: () => Navigator.pop(context)),
+                    ),
+                  ),
+                );
+              },
+            ),
+          RecentCarousel(
+            recent: provider.recentlyPlayed,
+            onTap: (audio) => provider.play(audio),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.queue_music_rounded,
+                  color: AppTheme.textSecondary,
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Todas las canciones',
+                  style: TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ...playlist.asMap().entries.map((entry) {
+            final audio = entry.value;
+            final isActive = provider.currentAudio?.id == audio.id;
+            final isPlaying = provider.isPlaying && isActive;
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+              child: TrackCard(
+                audio: audio,
+                isActive: isActive,
+                isPlaying: isPlaying,
+                onTap: () => provider.play(audio),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+}
 
+class _AlbumsTab extends StatelessWidget {
+  final List<dynamic> albums;
+  final AudioPlayerProvider provider;
+
+  const _AlbumsTab({required this.albums, required this.provider});
+
+  @override
+  Widget build(BuildContext context) {
     if (albums.isEmpty) {
       return Center(
         child: Text(
@@ -463,100 +414,102 @@ class _AlbumsTab extends StatelessWidget {
       );
     }
 
-    return Column(
-      children: [
-        _CountBadge(count: albums.length),
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: () => provider.scanDeviceMusic(autoPlay: false),
-            color: AppTheme.accent,
-            backgroundColor: AppTheme.surface,
-            child: GridView.builder(
-              padding: const EdgeInsets.fromLTRB(12, 4, 12, 100),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 0.68,
-              ),
-              itemCount: albums.length,
-              itemBuilder: (context, index) {
-                final album = albums[index];
-                return AlbumGridCard(
-                  album: album,
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => AlbumDetailScreen(album: album),
-                    ),
+    return RefreshIndicator(
+      onRefresh: () => provider.scanDeviceMusic(autoPlay: false),
+      color: AppTheme.accent,
+      backgroundColor: AppTheme.surface,
+      child: ListView(
+        padding: const EdgeInsets.only(bottom: 100),
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          FeaturedAlbums(
+            albums: albums.cast(),
+            onPlay: (album) => provider.playAlbum(album),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.album_rounded,
+                  color: AppTheme.textSecondary,
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Todos los álbumes',
+                  style: TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.3,
                   ),
-                  onPlay: () => provider.playAlbum(album),
-                );
-              },
+                ),
+              ],
             ),
           ),
-        ),
-      ],
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 0.68,
+            ),
+            itemCount: albums.length,
+            itemBuilder: (context, index) {
+              final album = albums[index];
+              return AlbumGridCard(
+                album: album,
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => AlbumDetailScreen(album: album),
+                  ),
+                ),
+                onPlay: () => provider.playAlbum(album),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 }
 
 class _GenresTab extends StatelessWidget {
+  final List<dynamic> genres;
+
+  const _GenresTab({required this.genres});
+
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<AudioPlayerProvider>();
-    final genres = provider.genres;
-
-    if (genres.isEmpty) {
-      return Center(
-        child: Text(
-          'No hay géneros',
-          style: TextStyle(color: AppTheme.textMuted, fontSize: 16),
-        ),
-      );
-    }
-
-    return Column(
-      children: [
-        _CountBadge(count: genres.length),
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: () => provider.scanDeviceMusic(autoPlay: false),
-            color: AppTheme.accent,
-            backgroundColor: AppTheme.surface,
-            child: GridView.builder(
-              padding: const EdgeInsets.fromLTRB(12, 4, 12, 100),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 1.7,
-              ),
-              itemCount: genres.length,
-              itemBuilder: (context, index) {
-                final genre = genres[index];
-                return GenreGridCard(
-                  genre: genre,
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => GenreDetailScreen(genre: genre),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-      ],
+    return RefreshIndicator(
+      onRefresh: () => context
+          .read<AudioPlayerProvider>()
+          .scanDeviceMusic(autoPlay: false),
+      color: AppTheme.accent,
+      backgroundColor: AppTheme.surface,
+      child: ListView(
+        padding: const EdgeInsets.only(top: 4, bottom: 100),
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          GenreChips(genres: genres.cast()),
+        ],
+      ),
     );
   }
 }
 
 class _ArtistsTab extends StatelessWidget {
+  final List<dynamic> artists;
+  final AudioPlayerProvider provider;
+
+  const _ArtistsTab({required this.artists, required this.provider});
+
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<AudioPlayerProvider>();
-    final artists = provider.artists;
-
     if (artists.isEmpty) {
       return Center(
         child: Text(
@@ -566,73 +519,65 @@ class _ArtistsTab extends StatelessWidget {
       );
     }
 
-    return Column(
-      children: [
-        _CountBadge(count: artists.length),
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: () => provider.scanDeviceMusic(autoPlay: false),
-            color: AppTheme.accent,
-            backgroundColor: AppTheme.surface,
-            child: GridView.builder(
-              padding: const EdgeInsets.fromLTRB(12, 4, 12, 100),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 16,
-                childAspectRatio: 0.65,
-              ),
-              itemCount: artists.length,
-              itemBuilder: (context, index) {
-                final artist = artists[index];
-                return ArtistGridCard(
-                  artist: artist,
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => ArtistDetailScreen(artist: artist),
-                    ),
+    return RefreshIndicator(
+      onRefresh: () => provider.scanDeviceMusic(autoPlay: false),
+      color: AppTheme.accent,
+      backgroundColor: AppTheme.surface,
+      child: ListView(
+        padding: const EdgeInsets.only(bottom: 100),
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          ArtistBanner(
+            artists: artists.cast(),
+            onPlay: (artist) => provider.playArtist(artist),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.people_rounded,
+                  color: AppTheme.textSecondary,
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Todos los artistas',
+                  style: TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.3,
                   ),
-                  onPlay: () => provider.playArtist(artist),
-                );
-              },
+                ),
+              ],
             ),
           ),
-        ),
-      ],
-    );
-  }
-}
-
-class _CountBadge extends StatelessWidget {
-  final int count;
-
-  const _CountBadge({required this.count});
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerRight,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: AppTheme.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: AppTheme.accent.withValues(alpha: 0.3),
-              width: 1,
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 16,
+              childAspectRatio: 0.65,
             ),
+            itemCount: artists.length,
+            itemBuilder: (context, index) {
+              final artist = artists[index];
+              return ArtistGridCard(
+                artist: artist,
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => ArtistDetailScreen(artist: artist),
+                  ),
+                ),
+                onPlay: () => provider.playArtist(artist),
+              );
+            },
           ),
-          child: Text(
-            '$count',
-            style: const TextStyle(
-              color: AppTheme.accent,
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
+        ],
       ),
     );
   }
@@ -649,6 +594,8 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<AudioPlayerProvider>();
+    final accent = provider.dynamicAccent;
     final icon = isPermissionDenied
         ? Icons.lock_outline_rounded
         : Icons.library_music_rounded;
@@ -665,20 +612,32 @@ class _EmptyState extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 120,
-              height: 120,
+              width: 140,
+              height: 140,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: AppTheme.cardGradient,
+                gradient: RadialGradient(
+                  colors: [
+                    accent.withValues(alpha: 0.3),
+                    accent.withValues(alpha: 0.05),
+                  ],
+                ),
                 border: Border.all(
-                  color: AppTheme.accent.withValues(alpha: 0.3),
+                  color: accent.withValues(alpha: 0.4),
                   width: 2,
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: accent.withValues(alpha: 0.3),
+                    blurRadius: 30,
+                    spreadRadius: 4,
+                  ),
+                ],
               ),
               child: Icon(
                 icon,
-                size: 56,
-                color: AppTheme.accent,
+                size: 64,
+                color: accent,
               ),
             ),
             const SizedBox(height: 32),
@@ -686,8 +645,9 @@ class _EmptyState extends StatelessWidget {
               title,
               style: const TextStyle(
                 color: AppTheme.textPrimary,
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
+                fontSize: 26,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.3,
               ),
               textAlign: TextAlign.center,
             ),
@@ -696,21 +656,57 @@ class _EmptyState extends StatelessWidget {
               message,
               style: TextStyle(
                 color: AppTheme.textSecondary,
-                fontSize: 16,
+                fontSize: 15,
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
-            ElevatedButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh_rounded),
-              label: Text(buttonText),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.accent,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                shape: RoundedRectangleBorder(
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [accent, accent.withValues(alpha: 0.7)],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: accent.withValues(alpha: 0.4),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: onRetry,
                   borderRadius: BorderRadius.circular(16),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 28,
+                      vertical: 16,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.refresh_rounded,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          buttonText,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),

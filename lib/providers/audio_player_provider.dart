@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:path/path.dart' as p;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/audio_file.dart';
 import '../models/media_collection.dart';
+import '../theme/app_theme.dart';
 
 enum AudioRepeatMode { off, all, one }
 
@@ -35,6 +37,9 @@ class AudioPlayerProvider extends ChangeNotifier {
   Timer? _sleepTimer;
   Duration? _sleepTimerDuration;
   final Set<String> _likedIds = {};
+  final List<String> _recentlyPlayedIds = [];
+  final Map<String, Color> _dominantColorCache = {};
+  Color _dynamicAccent = AppTheme.accent;
 
   List<Album> _albums = [];
   List<Artist> _artists = [];
@@ -48,6 +53,7 @@ class AudioPlayerProvider extends ChangeNotifier {
 
   AudioPlayerProvider() {
     _initPlayer();
+    _loadRecentlyPlayed();
   }
 
   List<AudioFile> get playlist => List.unmodifiable(_playlist);
@@ -74,6 +80,67 @@ class AudioPlayerProvider extends ChangeNotifier {
   Duration? get sleepTimerDuration => _sleepTimerDuration;
 
   bool isLiked(String id) => _likedIds.contains(id);
+
+  Color get dynamicAccent => _dynamicAccent;
+
+  List<AudioFile> get recentlyPlayed {
+    final list = <AudioFile>[];
+    for (final id in _recentlyPlayedIds) {
+      final audio = _playlist.firstWhere(
+        (a) => a.id == id,
+        orElse: () => AudioFile(id: '', path: '', name: ''),
+      );
+      if (audio.id.isNotEmpty) list.add(audio);
+    }
+    return list;
+  }
+
+  Future<void> _loadRecentlyPlayed() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final ids = prefs.getStringList('recently_played') ?? [];
+      _recentlyPlayedIds.clear();
+      _recentlyPlayedIds.addAll(ids);
+    } catch (_) {}
+  }
+
+  Future<void> _saveRecentlyPlayed() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList('recently_played', _recentlyPlayedIds);
+    } catch (_) {}
+  }
+
+  Color _colorFromString(String s) {
+    var hash = 0;
+    for (var i = 0; i < s.length; i++) {
+      hash = s.codeUnitAt(i) + ((hash << 5) - hash);
+      hash = hash & 0xFFFFFFFF;
+    }
+    final h = (hash.abs() % 360).toDouble();
+    final hsl = HSLColor.fromAHSL(1.0, h, 0.7, 0.55);
+    return hsl.toColor();
+  }
+
+  void _updateDynamicAccent(AudioFile audio) {
+    final id = audio.id;
+    if (_dominantColorCache.containsKey(id)) {
+      _dynamicAccent = _dominantColorCache[id]!;
+    } else {
+      final color = _colorFromString(id);
+      _dominantColorCache[id] = color;
+      _dynamicAccent = color;
+    }
+  }
+
+  void _trackPlay(AudioFile audio) {
+    _recentlyPlayedIds.remove(audio.id);
+    _recentlyPlayedIds.insert(0, audio.id);
+    while (_recentlyPlayedIds.length > 6) {
+      _recentlyPlayedIds.removeLast();
+    }
+    _saveRecentlyPlayed();
+  }
 
   Future<Uint8List?> getArtwork(int id, {int size = 300}) async {
     if (_artworkCache.containsKey(id)) {
@@ -468,6 +535,8 @@ class AudioPlayerProvider extends ChangeNotifier {
   Future<void> play(AudioFile audio) async {
     _currentAudio = audio;
     _lastError = null;
+    _updateDynamicAccent(audio);
+    _trackPlay(audio);
     try {
       await _player.play(DeviceFileSource(audio.path));
     } catch (e) {
