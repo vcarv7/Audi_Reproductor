@@ -5,6 +5,7 @@ import '../providers/audio_player_provider.dart';
 import '../theme/app_theme.dart';
 import 'gradient_seek_bar.dart';
 import 'audio_visualizer.dart';
+import 'dynamic_backdrop.dart';
 import 'player_controls.dart';
 import 'options_menu_sheet.dart';
 import 'full_artwork.dart';
@@ -44,9 +45,11 @@ class FullPlayer extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<AudioPlayerProvider>();
     final current = provider.currentAudio;
+    final accent = provider.dynamicAccent;
 
-    return Container(
-      decoration: BoxDecoration(gradient: AppTheme.backgroundGradient),
+    return DynamicBackdrop(
+      accentAlpha: 0.06,
+      animated: true,
       child: SafeArea(
         child: Column(
           children: [
@@ -68,9 +71,10 @@ class FullPlayer extends StatelessWidget {
                           _getStateText(provider.playerState),
                           key: ValueKey(provider.playerState),
                           style: TextStyle(
-                            color: AppTheme.textSecondary,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
+                            color: accent,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 2,
                           ),
                         ),
                       ),
@@ -149,6 +153,7 @@ class FullPlayer extends StatelessWidget {
               duration: provider.duration,
               onSeek: (pos) => provider.seek(pos),
               isPlaying: provider.isPlaying,
+              accent: accent,
             ),
             const SizedBox(height: 24),
             const PlayerControls(),
@@ -178,7 +183,9 @@ class _LikeButton extends StatelessWidget {
         padding: const EdgeInsets.all(8),
         child: Icon(
           isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-          color: isLiked ? AppTheme.accent : Colors.white,
+          color: isLiked
+              ? context.watch<AudioPlayerProvider>().dynamicAccent
+              : Colors.white,
           size: 28,
         ),
       ),
@@ -194,6 +201,7 @@ class _SecondaryControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AudioPlayerProvider>();
+    final accent = provider.dynamicAccent;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
@@ -226,10 +234,10 @@ class _SecondaryControls extends StatelessWidget {
                 Expanded(
                   child: SliderTheme(
                     data: SliderTheme.of(context).copyWith(
-                      activeTrackColor: AppTheme.accent,
+                      activeTrackColor: accent,
                       inactiveTrackColor: AppTheme.surfaceLight,
                       thumbColor: Colors.white,
-                      overlayColor: AppTheme.accent.withValues(alpha: 0.2),
+                      overlayColor: accent.withValues(alpha: 0.2),
                       trackHeight: 3,
                       thumbShape: const RoundSliderThumbShape(
                         enabledThumbRadius: 6,

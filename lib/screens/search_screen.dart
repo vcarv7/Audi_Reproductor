@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/audio_player_provider.dart';
 import '../theme/app_theme.dart';
+import '../widgets/dynamic_backdrop.dart';
 import '../widgets/track_card.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -24,13 +25,11 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AudioPlayerProvider>();
+    final accent = provider.dynamicAccent;
     final results = _query.isEmpty ? <dynamic>[] : provider.search(_query);
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: AppTheme.backgroundGradient,
-        ),
+      body: DynamicBackdrop(
         child: SafeArea(
           child: Column(
             children: [
@@ -60,7 +59,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             color: AppTheme.textPrimary,
                             fontSize: 15,
                           ),
-                          cursorColor: AppTheme.accent,
+                          cursorColor: accent,
                           decoration: InputDecoration(
                             hintText: 'Buscar en pistas, artistas, álbumes...',
                             hintStyle: TextStyle(
@@ -175,6 +174,7 @@ class _NoResultsState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final accent = context.watch<AudioPlayerProvider>().dynamicAccent;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -188,7 +188,7 @@ class _NoResultsState extends StatelessWidget {
                 shape: BoxShape.circle,
                 color: AppTheme.surface,
                 border: Border.all(
-                  color: AppTheme.accent.withValues(alpha: 0.2),
+                  color: accent.withValues(alpha: 0.2),
                   width: 2,
                 ),
               ),
@@ -233,8 +233,8 @@ class _NoResultsState extends StatelessWidget {
                   ..hideCurrentSnackBar()
                   ..showSnackBar(
                     SnackBar(
-                      content: Text('Reescaneando música...'),
-                      backgroundColor: AppTheme.surfaceLight,
+                      content: const Text('Reescaneando música...'),
+                      backgroundColor: const Color(0xFF1A1A1A),
                       behavior: SnackBarBehavior.floating,
                       duration: const Duration(seconds: 2),
                     ),
@@ -243,7 +243,7 @@ class _NoResultsState extends StatelessWidget {
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('Reescanear música'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.accent,
+                backgroundColor: accent,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 shape: RoundedRectangleBorder(

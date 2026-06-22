@@ -4,6 +4,7 @@ import '../models/audio_file.dart';
 import '../models/media_collection.dart';
 import '../providers/audio_player_provider.dart';
 import '../theme/app_theme.dart';
+import '../widgets/dynamic_backdrop.dart';
 import '../widgets/track_card.dart';
 
 class GenreDetailScreen extends StatefulWidget {
@@ -39,13 +40,11 @@ class _GenreDetailScreenState extends State<GenreDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AudioPlayerProvider>();
+    final accent = provider.dynamicAccent;
     final songs = _songs ?? [];
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: AppTheme.backgroundGradient,
-        ),
+      body: DynamicBackdrop(
         child: SafeArea(
           child: Column(
             children: [
@@ -102,10 +101,10 @@ class _GenreDetailScreenState extends State<GenreDetailScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'GÉNERO',
                             style: TextStyle(
-                              color: AppTheme.accent,
+                              color: accent,
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 2,
@@ -147,12 +146,14 @@ class _GenreDetailScreenState extends State<GenreDetailScreen> {
                     icon: const Icon(Icons.play_arrow_rounded),
                     label: const Text('Reproducir género'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.accent,
+                      backgroundColor: accent,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
+                      shadowColor: accent.withValues(alpha: 0.5),
+                      elevation: 8,
                     ),
                   ),
                 ),

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/media_collection.dart';
 import '../providers/audio_player_provider.dart';
 import '../theme/app_theme.dart';
+import '../widgets/dynamic_backdrop.dart';
 import '../widgets/track_card.dart';
 
 class AlbumDetailScreen extends StatelessWidget {
@@ -13,13 +14,11 @@ class AlbumDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AudioPlayerProvider>();
+    final accent = provider.dynamicAccent;
     final songs = provider.songsByAlbum(album);
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: AppTheme.backgroundGradient,
-        ),
+      body: DynamicBackdrop(
         child: SafeArea(
           child: Column(
             children: [
@@ -72,10 +71,10 @@ class AlbumDetailScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'ÁLBUM',
                             style: TextStyle(
-                              color: AppTheme.accent,
+                              color: accent,
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 2,
@@ -125,12 +124,14 @@ class AlbumDetailScreen extends StatelessWidget {
                     icon: const Icon(Icons.play_arrow_rounded),
                     label: const Text('Reproducir álbum'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.accent,
+                      backgroundColor: accent,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
+                      shadowColor: accent.withValues(alpha: 0.5),
+                      elevation: 8,
                     ),
                   ),
                 ),

@@ -6,6 +6,7 @@ class GradientSeekBar extends StatefulWidget {
   final Duration duration;
   final ValueChanged<Duration> onSeek;
   final bool isPlaying;
+  final Color? accent;
 
   const GradientSeekBar({
     super.key,
@@ -13,6 +14,7 @@ class GradientSeekBar extends StatefulWidget {
     required this.duration,
     required this.onSeek,
     this.isPlaying = false,
+    this.accent,
   });
 
   @override
@@ -60,6 +62,7 @@ class _GradientSeekBarState extends State<GradientSeekBar> {
   @override
   Widget build(BuildContext context) {
     final progress = _progress.clamp(0.0, 1.0);
+    final effectiveAccent = widget.accent ?? AppTheme.accent;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
@@ -84,7 +87,7 @@ class _GradientSeekBarState extends State<GradientSeekBar> {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: AppTheme.accent,
+                              color: effectiveAccent,
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
@@ -139,7 +142,12 @@ class _GradientSeekBarState extends State<GradientSeekBar> {
                                   alignment: Alignment.centerLeft,
                                   child: Container(
                                     decoration: BoxDecoration(
-                                      gradient: AppTheme.seekBarGradient,
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          effectiveAccent.withValues(alpha: 0.4),
+                                          effectiveAccent,
+                                        ],
+                                      ),
                                       borderRadius: BorderRadius.circular(2),
                                     ),
                                   ),
@@ -158,11 +166,11 @@ class _GradientSeekBarState extends State<GradientSeekBar> {
                           width: _dragging ? 18 : 14,
                           height: _dragging ? 18 : 14,
                           decoration: BoxDecoration(
-                            color: AppTheme.accent,
+                            color: effectiveAccent,
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: AppTheme.accent.withValues(alpha: 0.4),
+                                color: effectiveAccent.withValues(alpha: 0.4),
                                 blurRadius: 6,
                                 spreadRadius: 1,
                               ),

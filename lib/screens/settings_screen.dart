@@ -6,6 +6,7 @@ import '../providers/audio_player_provider.dart';
 import '../providers/font_provider.dart';
 import '../providers/settings_provider.dart';
 import '../theme/app_theme.dart';
+import '../widgets/dynamic_backdrop.dart';
 import '../widgets/styled_snackbar.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -30,9 +31,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final accent = context.watch<AudioPlayerProvider>().dynamicAccent;
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(gradient: AppTheme.backgroundGradient),
+      body: DynamicBackdrop(
+        accentAlpha: 0.06,
+        animated: true,
         child: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -47,18 +50,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                     const SizedBox(width: 4),
-                    const Icon(
+                    Icon(
                       Icons.settings_rounded,
-                      color: AppTheme.accent,
+                      color: accent,
                       size: 24,
                     ),
                     const SizedBox(width: 12),
-                    const Text(
-                      'Ajustes',
-                      style: TextStyle(
-                        color: AppTheme.textPrimary,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
+                    ShaderMask(
+                      shaderCallback: (bounds) => LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          AppTheme.textPrimary,
+                          accent,
+                          AppTheme.textPrimary,
+                        ],
+                        stops: const [0.0, 0.5, 1.0],
+                      ).createShader(bounds),
+                      child: const Text(
+                        'Ajustes',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.5,
+                        ),
                       ),
                     ),
                   ],
@@ -164,7 +180,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           Text(
                             'EcoPlayer',
                             style: TextStyle(
-                              color: AppTheme.textMuted.withValues(alpha: 0.6),
+                              color: accent.withValues(alpha: 0.6),
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                               letterSpacing: 2,
@@ -397,12 +413,13 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final accent = context.watch<AudioPlayerProvider>().dynamicAccent;
     return Padding(
       padding: const EdgeInsets.only(left: 4, bottom: 12),
       child: Text(
         text.toUpperCase(),
-        style: const TextStyle(
-          color: AppTheme.accent,
+        style: TextStyle(
+          color: accent,
           fontSize: 11,
           fontWeight: FontWeight.w800,
           letterSpacing: 2,
@@ -428,13 +445,16 @@ class _SettingsTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final enabled = onTap != null;
+    final accent = context.watch<AudioPlayerProvider>().dynamicAccent;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
         color: AppTheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.05),
+          color: enabled
+              ? accent.withValues(alpha: 0.15)
+              : Colors.white.withValues(alpha: 0.05),
           width: 1,
         ),
       ),
@@ -453,7 +473,12 @@ class _SettingsTile extends StatelessWidget {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
                     gradient: enabled
-                        ? AppTheme.buttonGradient
+                        ? LinearGradient(
+                            colors: [
+                              accent.withValues(alpha: 0.6),
+                              accent.withValues(alpha: 0.2),
+                            ],
+                          )
                         : LinearGradient(
                             colors: [AppTheme.surfaceLight, AppTheme.surface],
                           ),
@@ -518,13 +543,14 @@ class _SwitchSettingTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final accent = context.watch<AudioPlayerProvider>().dynamicAccent;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
         color: AppTheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.05),
+          color: accent.withValues(alpha: 0.15),
           width: 1,
         ),
       ),
@@ -542,7 +568,12 @@ class _SwitchSettingTile extends StatelessWidget {
                   height: 40,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
-                    gradient: AppTheme.buttonGradient,
+                    gradient: LinearGradient(
+                      colors: [
+                        accent.withValues(alpha: 0.6),
+                        accent.withValues(alpha: 0.2),
+                      ],
+                    ),
                   ),
                   child: Icon(icon, color: Colors.white, size: 22),
                 ),
@@ -573,7 +604,8 @@ class _SwitchSettingTile extends StatelessWidget {
                 Switch(
                   value: value,
                   onChanged: onChanged,
-                  activeThumbColor: AppTheme.accent,
+                  activeThumbColor: accent,
+                  activeTrackColor: accent.withValues(alpha: 0.5),
                 ),
               ],
             ),

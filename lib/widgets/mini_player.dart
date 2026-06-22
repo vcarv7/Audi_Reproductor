@@ -14,6 +14,7 @@ class MiniPlayer extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<AudioPlayerProvider>();
     final current = provider.currentAudio;
+    final accent = provider.dynamicAccent;
 
     if (current == null) return const SizedBox.shrink();
 
@@ -28,11 +29,22 @@ class MiniPlayer extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: AppTheme.cardGradient,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+          border: Border(
+            top: BorderSide(
+              color: accent.withValues(alpha: 0.4),
+              width: 1.5,
+            ),
+          ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.4),
               blurRadius: 8,
               offset: const Offset(0, -2),
+            ),
+            BoxShadow(
+              color: accent.withValues(alpha: 0.15),
+              blurRadius: 16,
+              offset: const Offset(0, -4),
             ),
           ],
         ),
@@ -45,7 +57,7 @@ class MiniPlayer extends StatelessWidget {
                 value: progress.clamp(0.0, 1.0),
                 backgroundColor: AppTheme.surfaceLight,
                 valueColor:
-                    const AlwaysStoppedAnimation<Color>(AppTheme.accent),
+                    AlwaysStoppedAnimation<Color>(accent),
               ),
             ),
             Padding(
@@ -83,7 +95,10 @@ class MiniPlayer extends StatelessWidget {
                     onPressed: () => provider.playPrevious(),
                   ),
                   const SizedBox(width: 4),
-                  _PlayPauseButton(isPlaying: provider.isPlaying),
+                  _PlayPauseButton(
+                    isPlaying: provider.isPlaying,
+                    accent: accent,
+                  ),
                   const SizedBox(width: 4),
                   _MiniControlButton(
                     icon: Icons.skip_next_rounded,
@@ -214,8 +229,9 @@ class _ArtworkContainerState extends State<_ArtworkContainer>
 
 class _PlayPauseButton extends StatelessWidget {
   final bool isPlaying;
+  final Color accent;
 
-  const _PlayPauseButton({required this.isPlaying});
+  const _PlayPauseButton({required this.isPlaying, required this.accent});
 
   @override
   Widget build(BuildContext context) {
@@ -231,7 +247,7 @@ class _PlayPauseButton extends StatelessWidget {
           boxShadow: isPlaying
               ? [
                   BoxShadow(
-                    color: AppTheme.accent.withValues(alpha: 0.5),
+                    color: accent.withValues(alpha: 0.5),
                     blurRadius: 12,
                     spreadRadius: 1,
                   ),

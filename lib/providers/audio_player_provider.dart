@@ -41,6 +41,9 @@ class AudioPlayerProvider extends ChangeNotifier {
   final List<String> _recentlyPlayedIds = [];
   final Map<String, Color> _dominantColorCache = {};
   Color _dynamicAccent = AppTheme.accent;
+  bool _isTransitioning = false;
+  int _consecutiveErrors = 0;
+  static const int _maxConsecutiveErrors = 3;
 
   List<Album> _albums = [];
   List<Artist> _artists = [];
@@ -545,20 +548,33 @@ class AudioPlayerProvider extends ChangeNotifier {
   }
 
   Future<void> play(AudioFile audio) async {
-    _currentAudio = audio;
-    _lastError = null;
-    _updateDynamicAccent(audio);
-    _trackPlay(audio);
+    if (_isTransitioning) return;
+    _isTransitioning = true;
     try {
-      await _player.play(DeviceFileSource(audio.path));
-    } catch (e) {
-      _lastError = 'Error al reproducir "${audio.name}"';
-      debugPrint(_lastError);
+      _currentAudio = audio;
+      _lastError = null;
+      _updateDynamicAccent(audio);
+      _trackPlay(audio);
+      try {
+        await _player.play(DeviceFileSource(audio.path));
+        _consecutiveErrors = 0;
+      } catch (e) {
+        _consecutiveErrors++;
+        _lastError = 'Error al reproducir "${audio.name}"';
+        debugPrint(_lastError);
+        notifyListeners();
+        if (_consecutiveErrors >= _maxConsecutiveErrors) {
+          _consecutiveErrors = 0;
+          await stop();
+          return;
+        }
+        await _advanceToNext();
+        return;
+      }
       notifyListeners();
-      await _playNext();
-      return;
+    } finally {
+      _isTransitioning = false;
     }
-    notifyListeners();
   }
 
   Future<void> resume() async {
@@ -576,11 +592,19 @@ class AudioPlayerProvider extends ChangeNotifier {
   }
 
   Future<void> seek(Duration position) async {
+    if (_isTransitioning) return;
+    _isTransitioning = true;
     _isSeeking = true;
     _position = position;
     notifyListeners();
-    await _player.seek(position);
-    _isSeeking = false;
+    try {
+      await _player.seek(position);
+    } catch (e) {
+      debugPrint('Error en seek: $e');
+    } finally {
+      _isSeeking = false;
+      _isTransitioning = false;
+    }
   }
 
   Future<void> togglePlayPause() async {
@@ -594,21 +618,29 @@ class AudioPlayerProvider extends ChangeNotifier {
   }
 
   Future<void> _playNext() async {
-    if (_playlist.isEmpty || _currentAudio == null) return;
+    await _advanceToNext();
+  }
 
-    final idx = _playlist.indexWhere((a) => a.id == _currentAudio!.id);
+  Future<void> _advanceToNext() async {
+    if (_playlist.isEmpty || _currentAudio == null) return;
 
     if (_repeatMode == AudioRepeatMode.one) {
       await play(_currentAudio!);
       return;
     }
 
+    final idx = _playlist.indexWhere((a) => a.id == _currentAudio!.id);
+    if (idx == -1) return;
+
     int nextIdx;
+
     if (_shuffle) {
-      nextIdx = (idx + 1 + (_playlist.length - 1)) % _playlist.length;
-      if (_playlist.length > 1) {
+      if (_playlist.length == 1) {
+        nextIdx = 0;
+      } else {
+        nextIdx = Random().nextInt(_playlist.length);
         while (nextIdx == idx) {
-          nextIdx = (idx + 1 + (_playlist.length - 1)) % _playlist.length;
+          nextIdx = Random().nextInt(_playlist.length);
         }
       }
     } else {
@@ -627,16 +659,7 @@ class AudioPlayerProvider extends ChangeNotifier {
   }
 
   Future<void> playNext() async {
-    if (_playlist.isEmpty || _currentAudio == null) return;
-    final idx = _playlist.indexWhere((a) => a.id == _currentAudio!.id);
-    int nextIdx;
-    if (_shuffle) {
-      nextIdx = (idx + 1 + (_playlist.length - 1)) % _playlist.length;
-    } else {
-      nextIdx = (idx + 1) % _playlist.length;
-    }
-    if (nextIdx >= _playlist.length) nextIdx = 0;
-    await play(_playlist[nextIdx]);
+    await _advanceToNext();
   }
 
   Future<void> playPrevious() async {

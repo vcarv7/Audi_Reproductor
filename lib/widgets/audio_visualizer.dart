@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
+import 'package:provider/provider.dart';
+import '../providers/audio_player_provider.dart';
 
 class AudioVisualizer extends StatefulWidget {
   final bool isPlaying;
@@ -73,6 +74,7 @@ class _AudioVisualizerState extends State<AudioVisualizer>
 
   @override
   Widget build(BuildContext context) {
+    final accent = context.watch<AudioPlayerProvider>().dynamicAccent;
     return SizedBox(
       height: widget.height,
       child: Row(
@@ -84,7 +86,14 @@ class _AudioVisualizerState extends State<AudioVisualizer>
             margin: const EdgeInsets.symmetric(horizontal: 2),
             height: widget.height * _barHeights[index],
             decoration: BoxDecoration(
-              gradient: AppTheme.seekBarGradient,
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  accent.withValues(alpha: 0.5),
+                  accent,
+                ],
+              ),
               borderRadius: BorderRadius.circular(3),
             ),
           );
